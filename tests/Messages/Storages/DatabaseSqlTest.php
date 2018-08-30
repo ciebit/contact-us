@@ -108,8 +108,8 @@ class DatabaseSqlTest extends Connection
     public function testGetAllByOrderDesc(): void
     {
         $database = $this->getDatabase();
-        $database->orderBy('id', 'DESC');
+        $database->setOrderBy('id', 'DESC');
         $message = $database->get();
-        $this->assertEquals(1, $message->getId());
+        $this->assertEquals(2, $message->getId());
     }
 }
