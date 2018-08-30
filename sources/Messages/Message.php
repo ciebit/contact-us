@@ -3,23 +3,17 @@ namespace Ciebit\ContactUs\Messages;
 
 use DateTime;
 use Ciebit\ContactUs\Status;
+use Ciebit\ContactUs\Messages\Addresses\Address;
 
 class Message
 {
     private $id; #int
     private $name; #string
-    private $address_place; #string
-    private $address_number; #int
-    private $address_neighborhood; #string
-    private $address_complement; #string
-    private $address_cep; #string
-    private $address_city_id; #int
-    private $address_city_name; #string
-    private $address_state_name; #string
     private $phone; #string
     private $email; #string
     private $subject; #string
     private $body; #string
+    private $address; #Address
     private $date_hour; #DateTime
     private $status; #Status
 
@@ -45,51 +39,9 @@ class Message
         return $this;
     }
 
-    public function setAddressPlace(string $place): self
+    public function setAddress(Address $address): self
     {
-        $this->address_place = $place;
-        return $this;
-    }
-
-    public function setAddressNumber(int $number): self
-    {
-        $this->address_number = $number;
-        return $this;
-    }
-
-    public function setAddressNeighborhood(string $neighborhood): self
-    {
-        $this->address_neighborhood = $neighborhood;
-        return $this;
-    }
-
-    public function setAddressComplement(string $complement): self
-    {
-        $this->address_complement = $complement;
-        return $this;
-    }
-
-    public function setAddressCep(string $cep): self
-    {
-        $this->address_cep = $cep;
-        return $this;
-    }
-
-    public function setAddressCityId(int $id): self
-    {
-        $this->address_city_id = $id;
-        return $this;
-    }
-
-    public function setAddressCityName(string $name): self
-    {
-        $this->address_city_name = $name;
-        return $this;
-    }
-
-    public function setAddressStateName(string $name): self
-    {
-        $this->address_state_name = $name;
+        $this->address = $address;
         return $this;
     }
 
@@ -123,44 +75,9 @@ class Message
         return $this->name;
     }
 
-    public function getAddressPlace(): string
+    public function getAddress(): Address
     {
-        return $this->address_place;
-    }
-
-    public function getAddressNumber(): string
-    {
-        return $this->address_number;
-    }
-
-    public function getAddressNeighborhood(): string
-    {
-        return $this->address_neighborhood;
-    }
-
-    public function getAddressComplement(): string
-    {
-        return $this->address_complement;
-    }
-
-    public function getAddressCep(): string
-    {
-        return $this->address_cep;
-    }
-
-    public function getAddressCityId(): int
-    {
-        return $this->address_city_id;
-    }
-
-    public function getAddressCityName(): string
-    {
-        return $this->address_city_name;
-    }
-
-    public function getAddressStateName(): string
-    {
-        return $this->address_state_name;
+        return $this->address;
     }
 
     public function getPhone(): string
