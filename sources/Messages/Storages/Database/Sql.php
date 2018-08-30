@@ -98,6 +98,7 @@ class Sql extends SqlFilters implements Database
         if ($messageData == false) {
             return null;
         }
+        $messageData['address'] = $this->addressBuilder->setData($messageData)->build();
         return $this->messageBuilder->setData($messageData)->build();
     }
 
@@ -118,6 +119,7 @@ class Sql extends SqlFilters implements Database
 
         $collection = new Collection;
         while ($message = $statement->fetch(PDO::FETCH_ASSOC)) {
+            $message['address'] = $this->addressBuilder->setData($message)->build();
             $this->messageBuilder->setData($message);
             $collection->add(
                 $this->messageBuilder->build()
