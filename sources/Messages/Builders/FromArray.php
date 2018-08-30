@@ -20,14 +20,14 @@ class FromArray implements Builder
     {
         if (
             ! is_array($this->data) OR
-            ! $this->data['name'] OR
-            ! $this->data['body'] OR
-            ! $this->data['email']
+            ! is_string($this->data['name'] ?? false) OR
+            ! is_string($this->data['body'] ?? false) OR
+            ! is_string($this->data['email'] ?? false)
         ) {
             throw new Exception('ciebit.contactus.messages.builders.invalid', 3);
         }
         
-        $status = $this->data['status'] ? new Status((int) $this->data['status']) : Status::DRAFT();
+        $status = is_numeric($this->data['status'] ?? null) ? new Status((int) $this->data['status']) : Status::DRAFT();
 
         $message = new Message(
             $this->data['name'],
