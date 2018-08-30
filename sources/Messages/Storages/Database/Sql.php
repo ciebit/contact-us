@@ -77,6 +77,7 @@ class Sql extends SqlFilters implements Database
             {$this->getFields()}
             FROM {$this->table} as `message`
             WHERE {$this->generateSqlFilters()}
+            {$this->generateOrder()}
             LIMIT 1
         ");
         $this->bind($statement);
@@ -97,6 +98,7 @@ class Sql extends SqlFilters implements Database
             {$this->getFields()}
             FROM {$this->table} as `message`
             WHERE {$this->generateSqlFilters()}
+            {$this->generateOrder()}
             {$this->generateSqlLimit()}
         ");
         $this->bind($statement);
@@ -156,12 +158,6 @@ class Sql extends SqlFilters implements Database
     public function setTotalLines(int $total): Storage
     {
         parent::setLimit($total);
-        return $this;
-    }
-
-    public function orderBy(string $column, string $order = "ASC"): self
-    {
-        $this->orderBy[] = [$column, $order];
         return $this;
     }
 }
