@@ -36,30 +36,13 @@ class FromArray implements Builder
             $this->data['email'],
             $status
         );
-
-        $addressBuilder = (new AddressBuilder)->setData($this->standardizeAddress($this->data));
-        $address = $addressBuilder->build();
         
         $this->data['id'] && $message->setId((int) $this->data['id']);
-        $address && $message->setAddress($address);
+        $this->data['address'] && $message->setAddress($this->data['address']);
         $this->data['phone'] && $message->setPhone($this->data['phone']);
         $this->data['subject'] && $message->setSubject($this->data['subject']);
         $this->data['date_hour'] && $message->setDateHour(new DateTime($this->data['date_hour']));
         
         return $message;
-    }
-
-    private function standardizeAddress(array $data): array
-    {
-        return [
-            'place' => $data['address_place'] ?? null,
-            'number' => $data['address_number'] ?? null,
-            'neighborhood' => $data['address_neighborhood'] ?? null,
-            'complement' => $data['address_complement'] ?? null,
-            'cep' => $data['address_cep'] ?? null,
-            'city_id' => $data['address_city_id'] ?? null,
-            'city_name' => $data['address_city_name'] ?? null,
-            'state_name' => $data['address_state_name'] ?? null
-        ];
     }
 }
