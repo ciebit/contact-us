@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace Ciebit\ContactUs\Messages\Builders;
 
+use Ciebit\ContactUs\Messages\Addresses\Builders\FromArray as AddressBuilder;
 use Ciebit\ContactUs\Messages\Message;
 use Ciebit\ContactUs\Status;
 use DateTime;
@@ -35,20 +36,30 @@ class FromArray implements Builder
             $this->data['email'],
             $status
         );
+
+        $addressBuilder = (new AddressBuilder)->setData($this->standardizeAddress($this->data));
+        $address = $addressBuilder->build();
         
         $this->data['id'] && $message->setId((int) $this->data['id']);
-        $this->data['address_place'] && $message->setAddressPlace($this->data['address_place']);
-        $this->data['address_number'] && $message->setAddressNumber((int) $this->data['address_number']);
-        $this->data['address_neighborhood'] && $message->setAddressNeighborhood($this->data['address_neighborhood']);
-        $this->data['address_complement'] && $message->setAddressComplement($this->data['address_complement']);
-        $this->data['address_cep'] && $message->setAddressCep($this->data['address_cep']);
-        $this->data['address_city_id'] && $message->setAddressCityId((int) $this->data['address_city_id']);
-        $this->data['address_city_name'] && $message->setAddressCityName($this->data['address_city_name']);
-        $this->data['address_state_name'] && $message->setAddressStateName($this->data['address_state_name']);
+        $address && $message->setAddress($address);
         $this->data['phone'] && $message->setPhone($this->data['phone']);
         $this->data['subject'] && $message->setSubject($this->data['subject']);
         $this->data['date_hour'] && $message->setDateHour(new DateTime($this->data['date_hour']));
         
         return $message;
+    }
+
+    private function standardizeAddress(array $data): array
+    {
+        return [
+            'place' => $data['address_place'] ?? null,
+            'number' => $data['address_number'] ?? null,
+            'neighborhood' => $data['address_neighborhood'] ?? null,
+            'complement' => $data['address_complement'] ?? null,
+            'cep' => $data['address_cep'] ?? null,
+            'city_id' => $data['address_city_id'] ?? null,
+            'city_name' => $data['address_city_name'] ?? null,
+            'state_name' => $data['address_state_name'] ?? null
+        ];
     }
 }
