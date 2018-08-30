@@ -4,6 +4,8 @@ namespace Ciebit\ContactUs\Tests\Messages\Storages;
 use Ciebit\ContactUs\Messages\Collection;
 use Ciebit\ContactUs\Status;
 use Ciebit\ContactUs\Messages\Message;
+use Ciebit\ContactUs\Messages\Builders\FromArray as MessageBuilder;
+use Ciebit\ContactUs\Messages\Addresses\Builders\FromArray as AddressBuilder;
 use Ciebit\ContactUs\Messages\Storages\Database\Sql as DatabaseSql;
 use Ciebit\ContactUs\Tests\Messages\Connection;
 
@@ -11,7 +13,11 @@ class DatabaseSqlTest extends Connection
 {
     public function getDatabase(): DatabaseSql
     {
-        return new DatabaseSql($this->getPdo());
+        return new DatabaseSql(
+            $this->getPdo(),
+            new MessageBuilder,
+            new AddressBuilder
+        );
     }
 
     public function testGet(): void

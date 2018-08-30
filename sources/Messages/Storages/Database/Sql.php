@@ -3,7 +3,8 @@ declare(strict_types=1);
 namespace Ciebit\ContactUs\Messages\Storages\Database;
 
 use Ciebit\ContactUs\Messages\Collection;
-use Ciebit\ContactUs\Messages\Builders\FromArray as Builder;
+use Ciebit\ContactUs\Messages\Builders\FromArray as MessageBuilder;
+use Ciebit\ContactUs\Messages\Addresses\Builders\FromArray as AddressBuilder;
 use Ciebit\ContactUs\Messages\Message;
 use Ciebit\ContactUs\Status;
 use Ciebit\ContactUs\Messages\Storages\Storage;
@@ -16,10 +17,19 @@ class Sql extends SqlFilters implements Database
     static private $counterKey = 0;
     private $pdo; #PDO
     private $table; #string
+    private $messageBuilder; #MessageBuilder
+    private $addressBuilder; #AddressBuilder
 
-    public function __construct(PDO $pdo)
+    public function __construct
+    (
+        PDO $pdo,
+        MessageBuilder $messageBuilder,
+        AddressBuilder $addressBuilder
+    )
     {
         $this->pdo = $pdo;
+        $this->messageBuilder = $messageBuilder;
+        $this->addressBuilder = $addressBuilder;
         $this->table = 'cb_contactus_messages';
     }
 
@@ -88,7 +98,7 @@ class Sql extends SqlFilters implements Database
         if ($messageData == false) {
             return null;
         }
-        return (new Builder)->setData($messageData)->build();
+        return $this->messageBuilder->setData($messageData)->build();
     }
 
     public function getAll(): Collection
@@ -105,12 +115,12 @@ class Sql extends SqlFilters implements Database
         if ($statement->execute() === false) {
             throw new Exception('ciebit.contactus.messages.storages.database.get_error', 2);
         }
+
         $collection = new Collection;
-        $builder = new Builder;
         while ($message = $statement->fetch(PDO::FETCH_ASSOC)) {
-            $builder->setData($message);
+            $this->messageBuilder->setData($message);
             $collection->add(
-                $builder->build()
+                $this->messageBuilder->build()
             );
         }
         return $collection;
