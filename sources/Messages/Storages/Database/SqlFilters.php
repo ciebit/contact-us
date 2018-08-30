@@ -11,6 +11,7 @@ abstract class SqlFilters
     private $filtersSql; #Array
     private $limit; #int
     private $offset; #int
+    private $orderBy; #Array
 
     protected function addBind(string $key, int $type, $value): self
     {
@@ -54,6 +55,19 @@ abstract class SqlFilters
         return implode(' AND ', $this->filtersSql);
     }
 
+    protected function generateOrder(): string
+    {
+        if (empty($this->orderBy)) {
+            return '';
+        }
+        $array = array_map(function($item) {
+            return implode(" ", $item);
+        }, $this->orderBy);
+          
+        $sql = "ORDER BY " . implode(', ', $array);
+        return $sql;
+    }
+
     protected function generateSqlLimit(): string
     {
         $init = (int) $this->offset;
@@ -73,6 +87,12 @@ abstract class SqlFilters
     protected function setOffset(int $lineInit): self
     {
         $this->offset = $lineInit;
+        return $this;
+    }
+
+    public function setOrderBy(string $column, string $order = "ASC"): self
+    {
+        $this->orderBy[] = [$column, $order];
         return $this;
     }
 }
