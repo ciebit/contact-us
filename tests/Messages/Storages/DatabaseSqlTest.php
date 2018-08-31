@@ -4,10 +4,12 @@ namespace Ciebit\ContactUs\Tests\Messages\Storages;
 use Ciebit\ContactUs\Messages\Collection;
 use Ciebit\ContactUs\Status;
 use Ciebit\ContactUs\Messages\Message;
+use Ciebit\ContactUs\Messages\Addresses\Address;
 use Ciebit\ContactUs\Messages\Builders\FromArray as MessageBuilder;
 use Ciebit\ContactUs\Messages\Addresses\Builders\FromArray as AddressBuilder;
 use Ciebit\ContactUs\Messages\Storages\Database\Sql as DatabaseSql;
 use Ciebit\ContactUs\Tests\Messages\Connection;
+use DateTime;
 
 class DatabaseSqlTest extends Connection
 {
@@ -18,6 +20,39 @@ class DatabaseSqlTest extends Connection
             new MessageBuilder,
             new AddressBuilder
         );
+    }
+
+    public function testInsert(): void
+    {
+        $id = 3;
+        $address = new Address(
+            "Rua Sertão",
+            563,
+            "Serra Taiada",
+            "Jaguaribe",
+            "Ceará"
+        );
+        $message = new Message(
+            "Virgulino Ferreira Silva",
+            "Olá, me chamo virgulino e gostaria de conhecer sua empresa",
+            "virgulino@ferreira.com",
+            Status::ACTIVE()
+        );
+        $message->setId($id);
+        $message->setAddress($address);
+        $message->setPhone("88996358654");
+        $message->setSubject("Conhecer empresa");
+        $message->setDateHour(new DateTime);
+
+        $database = $this->getDatabase();
+        $database->insert($message);
+        
+        $database->addFilterById($id);
+        $messageBD = $database->get();
+
+        var_dump($messageBD->getId());
+        var_dump($message->getId());
+        $this->assertEquals($messageBD->getId(),$message->getId());
     }
 
     public function testGet(): void
