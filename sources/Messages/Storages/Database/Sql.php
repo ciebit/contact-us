@@ -132,7 +132,7 @@ class Sql extends SqlFilters implements Database
 
     public function insert(Message $message): self
     {
-        $fields = implode(", ", $this->getFields());
+        $fields = implode(", ", array_keys($this->getBinds()));
         $binds = implode(", ", $this->getBinds());
         
         $statement = $this->pdo->prepare("
@@ -141,26 +141,27 @@ class Sql extends SqlFilters implements Database
             VALUES ({$binds})
         ");
 
-        $binds_array = array_keys($this->getBinds());
+        $binds_array = array_values($this->getBinds());
 
-        $this->addBind($binds_array[0], PDO::PARAM_INT, $message->getId());
-        $this->addBind($binds_array[1], PDO::PARAM_STR, $message->getName());
-        $this->addBind($binds_array[2], PDO::PARAM_STR, $message->getAddress()->getPlace());
-        $this->addBind($binds_array[3], PDO::PARAM_INT, $message->getAddress()->getNumber());
-        $this->addBind($binds_array[4], PDO::PARAM_STR, $message->getAddress()->getNeighborhood());
-        $this->addBind($binds_array[5], PDO::PARAM_STR, $message->getAddress()->getComplement());
-        $this->addBind($binds_array[6], PDO::PARAM_STR, $message->getAddress()->getCep());
-        $this->addBind($binds_array[7], PDO::PARAM_INT, $message->getAddress()->getCityId());
-        $this->addBind($binds_array[8], PDO::PARAM_STR, $message->getAddress()->getCityName());
-        $this->addBind($binds_array[9], PDO::PARAM_STR, $message->getAddress()->getStateName());
-        $this->addBind($binds_array[10], PDO::PARAM_STR, $message->getPhone());
-        $this->addBind($binds_array[11], PDO::PARAM_STR, $message->getEmail());
-        $this->addBind($binds_array[12], PDO::PARAM_STR, $message->getSubject());
-        $this->addBind($binds_array[13], PDO::PARAM_STR, $message->getBody());
-        $this->addBind($binds_array[14], PDO::PARAM_STR, $message->getDateHour()->format("Y-m-d H:i:s"));
-        $this->addBind($binds_array[15], PDO::PARAM_INT, $message->getStatus());
+        $this->addBind($binds_array[0], PDO::PARAM_STR, $message->getName());
+        $this->addBind($binds_array[1], PDO::PARAM_STR, $message->getAddress()->getPlace());
+        $this->addBind($binds_array[2], PDO::PARAM_INT, $message->getAddress()->getNumber());
+        $this->addBind($binds_array[3], PDO::PARAM_STR, $message->getAddress()->getNeighborhood());
+        $this->addBind($binds_array[4], PDO::PARAM_STR, $message->getAddress()->getComplement());
+        $this->addBind($binds_array[5], PDO::PARAM_STR, $message->getAddress()->getCep());
+        $this->addBind($binds_array[6], PDO::PARAM_INT, $message->getAddress()->getCityId());
+        $this->addBind($binds_array[7], PDO::PARAM_STR, $message->getAddress()->getCityName());
+        $this->addBind($binds_array[8], PDO::PARAM_STR, $message->getAddress()->getStateName());
+        $this->addBind($binds_array[9], PDO::PARAM_STR, $message->getPhone());
+        $this->addBind($binds_array[10], PDO::PARAM_STR, $message->getEmail());
+        $this->addBind($binds_array[11], PDO::PARAM_STR, $message->getSubject());
+        $this->addBind($binds_array[12], PDO::PARAM_STR, $message->getBody());
+        $this->addBind($binds_array[13], PDO::PARAM_STR, $message->getDateHour()->format("Y-m-d H:i:s"));
+        $this->addBind($binds_array[14], PDO::PARAM_INT, $message->getStatus()->getValue());
 
         $this->bind($statement);
+
+        $statement->debugDumpParams();
 
         if ($statement->execute() === false) {
             throw new Exception('ciebit.contactus.messages.storages.database.insert_error', 2);
@@ -172,22 +173,21 @@ class Sql extends SqlFilters implements Database
     private function getBinds(): array
     {
         return [
-            'id' =>':id',
-            'name' =>':name',
-            'address_place' =>':address_place',
-            'address_number' =>':address_number',
-            'address_neighborhood' =>':address_neighborhood',
-            'address_complement' =>':address_complement',
-            'address_cep' =>':address_cep',
-            'address_city_id' =>':address_city_id',
-            'address_city_name' =>':address_city_name',
-            'address_state_name' =>':address_state_name',
-            'phone' =>':phone',
-            'email' =>':email',
-            'subject' =>':subject',
-            'body' =>':body',
-            'date_hour' =>':date_hour',
-            'status' =>':status'
+            '`name`' =>':name',
+            '`address_place`' =>':address_place',
+            '`address_number`' =>':address_number',
+            '`address_neighborhood`' =>':address_neighborhood',
+            '`address_complement`' =>':address_complement',
+            '`address_cep`' =>':address_cep',
+            '`address_city_id`' =>':address_city_id',
+            '`address_city_name`' =>':address_city_name',
+            '`address_state_name`' =>':address_state_name',
+            '`phone`' =>':phone',
+            '`email`' =>':email',
+            '`subject`' =>':subject',
+            '`body`' =>':body',
+            '`date_hour`' =>':date_hour',
+            '`status`' =>':status'
         ];
     }
 
