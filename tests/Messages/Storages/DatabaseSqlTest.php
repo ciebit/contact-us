@@ -25,13 +25,16 @@ class DatabaseSqlTest extends Connection
     public function testInsert(): void
     {
         $id = 3;
-        $address = new Address(
+        $address = (new Address(
             "Rua Sertão",
             563,
             "Serra Taiada",
             "Jaguaribe",
             "Ceará"
-        );
+        ))
+        ->setComplement("Em frente ao posto federal")
+        ->setCep("63475000")
+        ->setCityId(125);
         $message = new Message(
             "Virgulino Ferreira Silva",
             "Olá, me chamo virgulino e gostaria de conhecer sua empresa",
