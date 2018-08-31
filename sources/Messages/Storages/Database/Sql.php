@@ -82,9 +82,10 @@ class Sql extends SqlFilters implements Database
 
     public function get(): ?Message
     {
+        $fields = implode(", ",$this->getFields('message'));
         $statement = $this->pdo->prepare("
             SELECT SQL_CALC_FOUND_ROWS
-            {$this->getFields()}
+            {$fields}
             FROM {$this->table} as `message`
             WHERE {$this->generateSqlFilters()}
             {$this->generateOrder()}
@@ -104,9 +105,10 @@ class Sql extends SqlFilters implements Database
 
     public function getAll(): Collection
     {
+        $fields = implode(", ",$this->getFields('message'));
         $statement = $this->pdo->prepare("
             SELECT SQL_CALC_FOUND_ROWS
-            {$this->getFields()}
+            {$fields}
             FROM {$this->table} as `message`
             WHERE {$this->generateSqlFilters()}
             {$this->generateOrder()}
@@ -128,26 +130,87 @@ class Sql extends SqlFilters implements Database
         return $collection;
     }
 
-    private function getFields(): string
+    public function insert(Message $message): self
     {
-        return '
-            `message`.`id`,
-            `message`.`name`,
-            `message`.`address_place`,
-            `message`.`address_number`,
-            `message`.`address_neighborhood`,
-            `message`.`address_complement`,
-            `message`.`address_cep`,
-            `message`.`address_city_id`,
-            `message`.`address_city_name`,
-            `message`.`address_state_name`,
-            `message`.`phone`,
-            `message`.`email`,
-            `message`.`subject`,
-            `message`.`body`,
-            `message`.`date_hour`,
-            `message`.`status`
-        ';
+        $fields = implode(", ", $this->getFields());
+        $binds = implode(", ", $this->getBinds());
+        
+        $statement = $this->pdo->prepare("
+            INSERT INTO {$this->table}
+            ({$fields})
+            VALUES ({$binds})
+        ");
+
+        $binds_array = array_keys($this->getBinds());
+
+        $this->addBind($binds_array[0], PDO::PARAM_INT, $message->getId());
+        $this->addBind($binds_array[1], PDO::PARAM_STR, $message->getName());
+        $this->addBind($binds_array[2], PDO::PARAM_STR, $message->getAddress()->getPlace());
+        $this->addBind($binds_array[3], PDO::PARAM_INT, $message->getAddress()->getNumber());
+        $this->addBind($binds_array[4], PDO::PARAM_STR, $message->getAddress()->getNeighborhood());
+        $this->addBind($binds_array[5], PDO::PARAM_STR, $message->getAddress()->getComplement());
+        $this->addBind($binds_array[6], PDO::PARAM_STR, $message->getAddress()->getCep());
+        $this->addBind($binds_array[7], PDO::PARAM_INT, $message->getAddress()->getCityId());
+        $this->addBind($binds_array[8], PDO::PARAM_STR, $message->getAddress()->getCityName());
+        $this->addBind($binds_array[9], PDO::PARAM_STR, $message->getAddress()->getStateName());
+        $this->addBind($binds_array[10], PDO::PARAM_STR, $message->getPhone());
+        $this->addBind($binds_array[11], PDO::PARAM_STR, $message->getEmail());
+        $this->addBind($binds_array[12], PDO::PARAM_STR, $message->getSubject());
+        $this->addBind($binds_array[13], PDO::PARAM_STR, $message->getBody());
+        $this->addBind($binds_array[14], PDO::PARAM_STR, $message->getDateHour()->format("Y-m-d H:i:s"));
+        $this->addBind($binds_array[15], PDO::PARAM_INT, $message->getStatus());
+
+        $this->bind($statement);
+
+        if ($statement->execute() === false) {
+            throw new Exception('ciebit.contactus.messages.storages.database.insert_error', 2);
+        }
+
+        return $this;
+    }
+
+    private function getBinds(): array
+    {
+        return [
+            'id' =>':id',
+            'name' =>':name',
+            'address_place' =>':address_place',
+            'address_number' =>':address_number',
+            'address_neighborhood' =>':address_neighborhood',
+            'address_complement' =>':address_complement',
+            'address_cep' =>':address_cep',
+            'address_city_id' =>':address_city_id',
+            'address_city_name' =>':address_city_name',
+            'address_state_name' =>':address_state_name',
+            'phone' =>':phone',
+            'email' =>':email',
+            'subject' =>':subject',
+            'body' =>':body',
+            'date_hour' =>':date_hour',
+            'status' =>':status'
+        ];
+    }
+
+    private function getFields(string $alias=null): array
+    {
+        return [
+            $alias ? "`{$alias}`".'.`id`' : ''.'`id`',
+            $alias ? "`{$alias}`".'.`name`' : ''.'`name`',
+            $alias ? "`{$alias}`".'.`address_place`' : ''.'`address_place`',
+            $alias ? "`{$alias}`".'.`address_number`' : ''.'`address_number`',
+            $alias ? "`{$alias}`".'.`address_neighborhood`' : ''.'`address_neighborhood`',
+            $alias ? "`{$alias}`".'.`address_complement`' : ''.'`address_complement`',
+            $alias ? "`{$alias}`".'.`address_cep`' : ''.'`address_cep`',
+            $alias ? "`{$alias}`".'.`address_city_id`' : ''.'`address_city_id`',
+            $alias ? "`{$alias}`".'.`address_city_name`' : ''.'`address_city_name`',
+            $alias ? "`{$alias}`".'.`address_state_name`' : ''.'`address_state_name`',
+            $alias ? "`{$alias}`".'.`phone`' : ''.'`phone`',
+            $alias ? "`{$alias}`".'.`email`' : ''.'`email`',
+            $alias ? "`{$alias}`".'.`subject`' : ''.'`subject`',
+            $alias ? "`{$alias}`".'.`body`' : ''.'`body`',
+            $alias ? "`{$alias}`".'.`date_hour`' : ''.'`date_hour`',
+            $alias ? "`{$alias}`".'.`status`' : ''.'`status`'
+        ];
     }
 
     public function getTotalRows(): int
