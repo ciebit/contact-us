@@ -43,19 +43,19 @@ class Address
         return $this->neighborhood;
     }
 
-    public function getComplement(): ?string
+    public function getComplement(): string
     {
-        return $this->complement;
+        return $this->complement ?? '';
     }
 
-    public function getCep(): ?string
+    public function getCep(): string
     {
-        return $this->cep;
+        return $this->cep ?? '';
     }
 
-    public function getCityId(): ?int
+    public function getCityId(): int
     {
-        return $this->city_id;
+        return $this->city_id ?? 0;
     }
 
     public function getCityName(): string
