@@ -26,6 +26,9 @@ class Address
         $this->neighborhood = $neighborhood;
         $this->city_name = $city_name;
         $this->state_name = $state_name;
+        $this->complement = '';
+        $this->cep = '';
+        $this->city_id = 0;
     }
 
     public function getPlace(): string
@@ -45,17 +48,17 @@ class Address
 
     public function getComplement(): string
     {
-        return $this->complement ?? '';
+        return $this->complement;
     }
 
     public function getCep(): string
     {
-        return $this->cep ?? '';
+        return $this->cep;
     }
 
     public function getCityId(): int
     {
-        return $this->city_id ?? 0;
+        return $this->city_id;
     }
 
     public function getCityName(): string
