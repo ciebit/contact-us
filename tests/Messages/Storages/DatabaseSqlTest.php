@@ -49,13 +49,13 @@ class DatabaseSqlTest extends Connection
 
         $database = $this->getDatabase();
         $database->insert($message);
-        
-        $database->addFilterById($id);
-        $messageBD = $database->get();
 
-        var_dump($messageBD->getId());
-        var_dump($message->getId());
+        $database2 = $this->getDatabase();
+        $database2->addFilterById($id);
+        $messageBD = $database2->get();
+
         $this->assertEquals($messageBD->getId(),$message->getId());
+        $this->assertEquals($messageBD->getName(),$message->getName());
     }
 
     public function testGet(): void
@@ -128,7 +128,7 @@ class DatabaseSqlTest extends Connection
         $message = $database->get();
         $this->assertEquals(Status::ACTIVE(), $message->getStatus());
     }
-    
+
     public function testGetFilterByName(): void
     {
         $database = $this->getDatabase();
