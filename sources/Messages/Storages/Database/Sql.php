@@ -132,16 +132,15 @@ class Sql extends SqlFilters implements Database
 
     public function insert(Message $message): self
     {
-        $fields = implode(", ", array_keys($this->getBinds()));
+        $binds_array = array_keys($this->getBinds());
+        $fields = implode(", ", $binds_array);
         $binds = implode(", ", $this->getBinds());
-        
+
         $statement = $this->pdo->prepare("
             INSERT INTO {$this->table}
             ({$fields})
             VALUES ({$binds})
         ");
-
-        $binds_array = array_values($this->getBinds());
 
         $this->addBind($binds_array[0], PDO::PARAM_STR, $message->getName());
         $this->addBind($binds_array[1], PDO::PARAM_STR, $message->getAddress()->getPlace());
@@ -160,9 +159,7 @@ class Sql extends SqlFilters implements Database
         $this->addBind($binds_array[14], PDO::PARAM_INT, $message->getStatus()->getValue());
 
         $this->bind($statement);
-
-        $statement->debugDumpParams();
-
+        
         if ($statement->execute() === false) {
             throw new Exception('ciebit.contactus.messages.storages.database.insert_error', 2);
         }
@@ -173,21 +170,21 @@ class Sql extends SqlFilters implements Database
     private function getBinds(): array
     {
         return [
-            '`name`' =>':name',
-            '`address_place`' =>':address_place',
-            '`address_number`' =>':address_number',
-            '`address_neighborhood`' =>':address_neighborhood',
-            '`address_complement`' =>':address_complement',
-            '`address_cep`' =>':address_cep',
-            '`address_city_id`' =>':address_city_id',
-            '`address_city_name`' =>':address_city_name',
-            '`address_state_name`' =>':address_state_name',
-            '`phone`' =>':phone',
-            '`email`' =>':email',
-            '`subject`' =>':subject',
-            '`body`' =>':body',
-            '`date_hour`' =>':date_hour',
-            '`status`' =>':status'
+            'name' =>':name',
+            'address_place' =>':address_place',
+            'address_number' =>':address_number',
+            'address_neighborhood' =>':address_neighborhood',
+            'address_complement' =>':address_complement',
+            'address_cep' =>':address_cep',
+            'address_city_id' =>':address_city_id',
+            'address_city_name' =>':address_city_name',
+            'address_state_name' =>':address_state_name',
+            'phone' =>':phone',
+            'email' =>':email',
+            'subject' =>':subject',
+            'body' =>':body',
+            'date_hour' =>':date_hour',
+            'status' =>':status'
         ];
     }
 
