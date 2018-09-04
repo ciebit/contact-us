@@ -26,6 +26,9 @@ class Address
         $this->neighborhood = $neighborhood;
         $this->city_name = $city_name;
         $this->state_name = $state_name;
+        $this->complement = '';
+        $this->cep = '';
+        $this->city_id = 0;
     }
 
     public function getPlace(): string

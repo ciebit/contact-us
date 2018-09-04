@@ -82,9 +82,10 @@ class Sql extends SqlFilters implements Database
 
     public function get(): ?Message
     {
+        $fields = $this->getFields('message');
         $statement = $this->pdo->prepare("
             SELECT SQL_CALC_FOUND_ROWS
-            {$this->getFields()}
+            {$fields}
             FROM {$this->table} as `message`
             WHERE {$this->generateSqlFilters()}
             {$this->generateOrder()}
@@ -104,9 +105,10 @@ class Sql extends SqlFilters implements Database
 
     public function getAll(): Collection
     {
+        $fields = $this->getFields('message');
         $statement = $this->pdo->prepare("
             SELECT SQL_CALC_FOUND_ROWS
-            {$this->getFields()}
+            {$fields}
             FROM {$this->table} as `message`
             WHERE {$this->generateSqlFilters()}
             {$this->generateOrder()}
@@ -128,26 +130,81 @@ class Sql extends SqlFilters implements Database
         return $collection;
     }
 
-    private function getFields(): string
+    public function insert(Message $message): self
     {
-        return '
-            `message`.`id`,
-            `message`.`name`,
-            `message`.`address_place`,
-            `message`.`address_number`,
-            `message`.`address_neighborhood`,
-            `message`.`address_complement`,
-            `message`.`address_cep`,
-            `message`.`address_city_id`,
-            `message`.`address_city_name`,
-            `message`.`address_state_name`,
-            `message`.`phone`,
-            `message`.`email`,
-            `message`.`subject`,
-            `message`.`body`,
-            `message`.`date_hour`,
-            `message`.`status`
-        ';
+        $fields = $this->getFields(null, true);
+        $binds = $this->getBinds();
+
+        $statement = $this->pdo->prepare("
+            INSERT INTO {$this->table}
+            ({$fields})
+            VALUES ({$binds})
+        ");
+
+        $statement->bindValue(':name', $message->getName(), PDO::PARAM_STR);
+        $statement->bindValue(':address_place', $message->getAddress()->getPlace(), PDO::PARAM_STR);
+        $statement->bindValue(':address_number', $message->getAddress()->getNumber(), PDO::PARAM_INT);
+        $statement->bindValue(':address_neighborhood', $message->getAddress()->getNeighborhood(), PDO::PARAM_STR);
+        $statement->bindValue(':address_complement', $message->getAddress()->getComplement(), PDO::PARAM_STR);
+        $statement->bindValue(':address_cep', $message->getAddress()->getCep(), PDO::PARAM_STR);
+        $statement->bindValue(':address_city_id', $message->getAddress()->getCityId(), PDO::PARAM_INT);
+        $statement->bindValue(':address_city_name', $message->getAddress()->getCityName(), PDO::PARAM_STR);
+        $statement->bindValue(':address_state_name', $message->getAddress()->getStateName(), PDO::PARAM_STR);
+        $statement->bindValue(':phone', $message->getPhone(), PDO::PARAM_STR);
+        $statement->bindValue(':email', $message->getEmail(), PDO::PARAM_STR);
+        $statement->bindValue(':subject', $message->getSubject(), PDO::PARAM_STR);
+        $statement->bindValue(':body', $message->getBody(), PDO::PARAM_STR);
+        $statement->bindValue(':date_hour', $message->getDateHour()->format("Y-m-d H:i:s"), PDO::PARAM_STR);
+        $statement->bindValue(':status', $message->getStatus()->getValue(), PDO::PARAM_INT);
+        
+        if ($statement->execute() === false) {
+            throw new Exception('ciebit.contactus.messages.storages.database.insert_error', 2);
+        }
+
+        return $this;
+    }
+
+    private function getColumns(): array
+    {
+        return [
+            'id',
+            'name',
+            'address_place',
+            'address_number',
+            'address_neighborhood',
+            'address_complement',
+            'address_cep',
+            'address_city_id',
+            'address_city_name',
+            'address_state_name',
+            'phone',
+            'email',
+            'subject',
+            'body',
+            'date_hour',
+            'status'
+        ];
+    }
+
+    private function getFields(string $aliasTable=null, bool $excludeId=false): string
+    {
+        $columns = $this->getColumns();
+        if ($excludeId) {
+            $columns = array_filter($columns, function($column) {
+                return $column != 'id';
+            });
+        }
+        $alias = $aliasTable ? $aliasTable.'.' : '';
+        return $alias . implode(", {$alias}", $columns);
+    }
+
+    private function getBinds(): string
+    {
+        $columns = $this->getColumns();
+        $columns = array_filter($columns, function($column) {
+            return $column != 'id';
+        });
+        return ':'.implode(", :", $columns);
     }
 
     public function getTotalRows(): int
