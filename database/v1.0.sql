@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS `cb_contactus_messages` (
   `address_number`          varchar(10) DEFAULT NULL,
   `address_neighborhood`    varchar(80) DEFAULT NULL,
   `address_complement`      varchar(500) DEFAULT NULL,
-  `address_cep`             int(8) unsigned DEFAULT NULL,
+  `address_cep`             varchar(8) DEFAULT NULL,
   `address_city_id`         int(8) unsigned DEFAULT NULL,
   `address_city_name`       varchar(100) DEFAULT NULL,
   `address_state_name`      varchar(100) DEFAULT NULL,
