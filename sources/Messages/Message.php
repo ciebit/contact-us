@@ -29,6 +29,11 @@ class Message
         $this->body = $body;
         $this->email = $email;
         $this->status = $status;
+        $this->id = 0;
+        $this->subject = '';
+        $this->phone = '';
+        $this->address = new Address('', 0, '', '', '');
+        $this->date_hour = new DateTime;
     }
 
     //Setters
