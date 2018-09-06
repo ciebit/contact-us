@@ -6,6 +6,7 @@ use Ciebit\ContactUs\Messages\Addresses\Builders\FromArray as AddressBuilder;
 use Ciebit\ContactUs\Messages\Message;
 use Ciebit\ContactUs\Status;
 use DateTime;
+use Exception;
 
 class FromArray implements Builder
 {
