@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS `cb_contactus_messages` (
   `address_city_id`         int(8) unsigned DEFAULT NULL,
   `address_city_name`       varchar(100) DEFAULT NULL,
   `address_state_name`      varchar(100) DEFAULT NULL,
-  `phone`                   bigint(13) unsigned DEFAULT NULL,
+  `phone`                   varchar(20) DEFAULT NULL,
   `email`                   varchar(100) DEFAULT NULL,
   `subject`                 varchar(300) DEFAULT NULL,
   `body`                    text NOT NULL,
