@@ -29,6 +29,11 @@ class Message
         $this->body = $body;
         $this->email = $email;
         $this->status = $status;
+        $this->id = 0;
+        $this->subject = '';
+        $this->phone = '';
+        $this->address = null;
+        $this->date_hour = new DateTime;
     }
 
     //Setters
@@ -75,7 +80,7 @@ class Message
         return $this->name;
     }
 
-    public function getAddress(): Address
+    public function getAddress(): ?Address
     {
         return $this->address;
     }

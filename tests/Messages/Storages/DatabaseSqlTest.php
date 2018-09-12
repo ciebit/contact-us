@@ -58,6 +58,29 @@ class DatabaseSqlTest extends Connection
         $this->assertEquals($messageBD->getName(),$message->getName());
     }
 
+    public function testInsertWithoutAddress(): void
+    {
+        $message = new Message(
+            "Chicó Ferreira",
+            "Sabem notícias do João Grilo?",
+            "chico@ferreira.com",
+            Status::ACTIVE()
+        );
+        $message->setPhone("88996355554");
+        $message->setSubject("João Grilo");
+        $message->setDateHour(new DateTime);
+
+        $database = $this->getDatabase();
+        $database->insert($message);
+
+        $database2 = $this->getDatabase();
+        $database2->addFilterById($message->getId());
+        $messageBD = $database2->get();
+
+        $this->assertEquals($messageBD->getId(),$message->getId());
+        $this->assertEquals($messageBD->getName(),$message->getName());
+    }
+
     public function testGet(): void
     {
         $database = $this->getDatabase();

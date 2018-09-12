@@ -5,12 +5,16 @@ namespace Ciebit\ContactUs\Messages\Storages\Database;
 use Ciebit\ContactUs\Messages\Collection;
 use Ciebit\ContactUs\Messages\Builders\FromArray as MessageBuilder;
 use Ciebit\ContactUs\Messages\Addresses\Builders\FromArray as AddressBuilder;
+use Ciebit\ContactUs\Messages\Addresses\Address;
 use Ciebit\ContactUs\Messages\Message;
 use Ciebit\ContactUs\Status;
 use Ciebit\ContactUs\Messages\Storages\Storage;
 use Ciebit\ContactUs\Messages\Storages\Database\SqlFilters;
 use Exception;
 use PDO;
+
+use function array_diff;
+use function implode;
 
 class Sql extends SqlFilters implements Database
 {
@@ -20,13 +24,11 @@ class Sql extends SqlFilters implements Database
     private $messageBuilder; #MessageBuilder
     private $addressBuilder; #AddressBuilder
 
-    public function __construct
-    (
+    public function __construct (
         PDO $pdo,
         MessageBuilder $messageBuilder,
         AddressBuilder $addressBuilder
-    )
-    {
+    ) {
         $this->pdo = $pdo;
         $this->messageBuilder = $messageBuilder;
         $this->addressBuilder = $addressBuilder;
@@ -80,12 +82,27 @@ class Sql extends SqlFilters implements Database
         return $this;
     }
 
+    private function buildAddress(array $data): ?Address
+    {
+        if (
+            $data['address_place'] ||
+            $data['address_number'] ||
+            $data['address_neighborhood'] ||
+            $data['address_city_name'] ||
+            $data['address_state_name']
+        ) {
+            return $this->addressBuilder->setData($data)->build();
+        }
+
+        return null;
+    }
+
     public function get(): ?Message
     {
-        $fields = $this->getFields('message');
+        $fields = implode('`,`', $this->getColumns());
         $statement = $this->pdo->prepare("
             SELECT SQL_CALC_FOUND_ROWS
-            {$fields}
+            `{$fields}`
             FROM {$this->table} as `message`
             WHERE {$this->generateSqlFilters()}
             {$this->generateOrder()}
@@ -99,16 +116,16 @@ class Sql extends SqlFilters implements Database
         if ($messageData == false) {
             return null;
         }
-        $messageData['address'] = $this->addressBuilder->setData($messageData)->build();
+        $messageData['address'] = $this->buildAddress($messageData);
         return $this->messageBuilder->setData($messageData)->build();
     }
 
     public function getAll(): Collection
     {
-        $fields = $this->getFields('message');
+        $fields = implode('`,`', $this->getColumns());
         $statement = $this->pdo->prepare("
             SELECT SQL_CALC_FOUND_ROWS
-            {$fields}
+            `{$fields}`
             FROM {$this->table} as `message`
             WHERE {$this->generateSqlFilters()}
             {$this->generateOrder()}
@@ -121,7 +138,7 @@ class Sql extends SqlFilters implements Database
 
         $collection = new Collection;
         while ($message = $statement->fetch(PDO::FETCH_ASSOC)) {
-            $message['address'] = $this->addressBuilder->setData($message)->build();
+            $message['address'] = $this->buildAddress($message);
             $this->messageBuilder->setData($message);
             $collection->add(
                 $this->messageBuilder->build()
@@ -130,81 +147,85 @@ class Sql extends SqlFilters implements Database
         return $collection;
     }
 
-    public function insert(Message $message): self
-    {
-        $fields = $this->getFields(null, true);
-        $binds = $this->getBinds();
-
-        $statement = $this->pdo->prepare("
-            INSERT INTO {$this->table}
-            ({$fields})
-            VALUES ({$binds})
-        ");
-
-        $statement->bindValue(':name', $message->getName(), PDO::PARAM_STR);
-        $statement->bindValue(':address_place', $message->getAddress()->getPlace(), PDO::PARAM_STR);
-        $statement->bindValue(':address_number', $message->getAddress()->getNumber(), PDO::PARAM_INT);
-        $statement->bindValue(':address_neighborhood', $message->getAddress()->getNeighborhood(), PDO::PARAM_STR);
-        $statement->bindValue(':address_complement', $message->getAddress()->getComplement(), PDO::PARAM_STR);
-        $statement->bindValue(':address_cep', $message->getAddress()->getCep(), PDO::PARAM_STR);
-        $statement->bindValue(':address_city_id', $message->getAddress()->getCityId(), PDO::PARAM_INT);
-        $statement->bindValue(':address_city_name', $message->getAddress()->getCityName(), PDO::PARAM_STR);
-        $statement->bindValue(':address_state_name', $message->getAddress()->getStateName(), PDO::PARAM_STR);
-        $statement->bindValue(':phone', $message->getPhone(), PDO::PARAM_STR);
-        $statement->bindValue(':email', $message->getEmail(), PDO::PARAM_STR);
-        $statement->bindValue(':subject', $message->getSubject(), PDO::PARAM_STR);
-        $statement->bindValue(':body', $message->getBody(), PDO::PARAM_STR);
-        $statement->bindValue(':date_hour', $message->getDateHour()->format("Y-m-d H:i:s"), PDO::PARAM_STR);
-        $statement->bindValue(':status', $message->getStatus()->getValue(), PDO::PARAM_INT);
-        
-        if ($statement->execute() === false) {
-            throw new Exception('ciebit.contactus.messages.storages.database.insert_error', 2);
-        }
-
-        return $this;
-    }
-
     private function getColumns(): array
     {
         return [
             'id',
-            'name',
-            'address_place',
-            'address_number',
-            'address_neighborhood',
-            'address_complement',
             'address_cep',
             'address_city_id',
             'address_city_name',
+            'address_complement',
+            'address_neighborhood',
+            'address_number',
+            'address_place',
             'address_state_name',
-            'phone',
-            'email',
-            'subject',
             'body',
             'date_hour',
+            'email',
+            'name',
+            'phone',
+            'subject',
             'status'
         ];
     }
 
-    private function getFields(string $aliasTable=null, bool $excludeId=false): string
+    public function insert(Message $message): self
     {
-        $columns = $this->getColumns();
-        if ($excludeId) {
-            $columns = array_filter($columns, function($column) {
-                return $column != 'id';
-            });
-        }
-        $alias = $aliasTable ? $aliasTable.'.' : '';
-        return $alias . implode(", {$alias}", $columns);
-    }
+        $columns = array_diff($this->getColumns(), ['id']);
+        $fields = implode('`,`', $columns);
+        $values = implode(', :', $columns);
 
-    private function getBinds(): string
-    {
-        $columns = $this->getColumns();
-        $columns = array_filter($columns, function($column) {
-            return $column != 'id';
-        });
-        return ':'.implode(", :", $columns);
+        $statement = $this->pdo->prepare(
+            "INSERT INTO {$this->table} (
+                `{$fields}`
+            ) VALUES (
+                :{$values}
+            )"
+        );
+
+        if ($message->getAddress() == null) {
+            $cep =
+            $cityId =
+            $cityName =
+            $complement =
+            $neighborhood =
+            $number =
+            $place =
+            $stateName = null;
+        } else {
+            $cep = $message->getAddress()->getCep();
+            $cityId = $message->getAddress()->getCityId();
+            $cityName = $message->getAddress()->getCityName();
+            $complement = $message->getAddress()->getComplement();
+            $neighborhood = $message->getAddress()->getNeighborhood();
+            $number = $message->getAddress()->getNumber();
+            $place = $message->getAddress()->getPlace();
+            $stateName = $message->getAddress()->getStateName();
+        }
+
+        $statement->bindValue(':address_cep', $cep , PDO::PARAM_STR);
+        $statement->bindValue(':address_city_id', $cityId , PDO::PARAM_INT);
+        $statement->bindValue(':address_city_name', $cityName , PDO::PARAM_STR);
+        $statement->bindValue(':address_complement', $complement , PDO::PARAM_STR);
+        $statement->bindValue(':address_neighborhood', $neighborhood , PDO::PARAM_STR);
+        $statement->bindValue(':address_number', $number , PDO::PARAM_INT);
+        $statement->bindValue(':address_place', $place , PDO::PARAM_STR);
+        $statement->bindValue(':address_state_name', $stateName , PDO::PARAM_STR);
+        $statement->bindValue(':body', $message->getBody(), PDO::PARAM_STR);
+        $statement->bindValue(':date_hour', $message->getDateHour()->format("Y-m-d H:i:s"), PDO::PARAM_STR);
+        $statement->bindValue(':email', $message->getEmail(), PDO::PARAM_STR);
+        $statement->bindValue(':name', $message->getName(), PDO::PARAM_STR);
+        $statement->bindValue(':phone', $message->getPhone(), PDO::PARAM_STR);
+        $statement->bindValue(':subject', $message->getSubject(), PDO::PARAM_STR);
+        $statement->bindValue(':status', $message->getStatus()->getValue(), PDO::PARAM_INT);
+
+        if ($statement->execute() === false) {
+            throw new Exception('ciebit.contactus.messages.storages.database.insert_error', 2);
+        }
+
+        $message->setId((int) $this->pdo->lastInsertId());
+
+        return $this;
     }
 
     public function getTotalRows(): int
