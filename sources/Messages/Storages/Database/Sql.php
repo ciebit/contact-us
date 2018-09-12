@@ -132,24 +132,52 @@ class Sql extends SqlFilters implements Database
 
     public function insert(Message $message): self
     {
-        $fields = $this->getFields(null, true);
-        $binds = $this->getBinds();
+        $fields = $this->getFields(
+            null,
+            false,
+            'id',
+            'address_place',
+            'address_number',
+            'address_neighborhood',
+            'address_complement',
+            'address_cep',
+            'address_city_id',
+            'address_city_name',
+            'address_state_name'
+        );
+        $binds = $this->getBinds(
+            false,
+            'address_place',
+            'address_number',
+            'address_neighborhood',
+            'address_complement',
+            'address_cep',
+            'address_city_id',
+            'address_city_name',
+            'address_state_name'
+        );
 
-        $statement = $this->pdo->prepare("
+        $statement = $this->pdo->prepare($sql = "
             INSERT INTO {$this->table}
             ({$fields})
             VALUES ({$binds})
         ");
 
+        echo $sql;
+
         $statement->bindValue(':name', $message->getName(), PDO::PARAM_STR);
-        $statement->bindValue(':address_place', $message->getAddress()->getPlace(), PDO::PARAM_STR);
-        $statement->bindValue(':address_number', $message->getAddress()->getNumber(), PDO::PARAM_INT);
-        $statement->bindValue(':address_neighborhood', $message->getAddress()->getNeighborhood(), PDO::PARAM_STR);
-        $statement->bindValue(':address_complement', $message->getAddress()->getComplement(), PDO::PARAM_STR);
-        $statement->bindValue(':address_cep', $message->getAddress()->getCep(), PDO::PARAM_STR);
-        $statement->bindValue(':address_city_id', $message->getAddress()->getCityId(), PDO::PARAM_INT);
-        $statement->bindValue(':address_city_name', $message->getAddress()->getCityName(), PDO::PARAM_STR);
-        $statement->bindValue(':address_state_name', $message->getAddress()->getStateName(), PDO::PARAM_STR);
+
+        if ($message->getAddress() != null) {
+            echo "Tá entrando aqui";
+            $statement->bindValue(':address_place', $message->getAddress()->getPlace(), PDO::PARAM_STR);
+            $statement->bindValue(':address_number', $message->getAddress()->getNumber(), PDO::PARAM_INT);
+            $statement->bindValue(':address_neighborhood', $message->getAddress()->getNeighborhood(), PDO::PARAM_STR);
+            $statement->bindValue(':address_complement', $message->getAddress()->getComplement(), PDO::PARAM_STR);
+            $statement->bindValue(':address_cep', $message->getAddress()->getCep(), PDO::PARAM_STR);
+            $statement->bindValue(':address_city_id', $message->getAddress()->getCityId(), PDO::PARAM_INT);
+            $statement->bindValue(':address_city_name', $message->getAddress()->getCityName(), PDO::PARAM_STR);
+            $statement->bindValue(':address_state_name', $message->getAddress()->getStateName(), PDO::PARAM_STR);
+        }
         $statement->bindValue(':phone', $message->getPhone(), PDO::PARAM_STR);
         $statement->bindValue(':email', $message->getEmail(), PDO::PARAM_STR);
         $statement->bindValue(':subject', $message->getSubject(), PDO::PARAM_STR);
@@ -186,24 +214,47 @@ class Sql extends SqlFilters implements Database
         ];
     }
 
-    private function getFields(string $aliasTable=null, bool $excludeId=false): string
+    private function getFields(string $aliasTable = null, bool $modeInclude = null, string ...$filters): string
     {
         $columns = $this->getColumns();
-        if ($excludeId) {
-            $columns = array_filter($columns, function($column) {
-                return $column != 'id';
-            });
+        if ($filters) {
+            if ($modeInclude === false) {
+                echo "Entrei no if";
+                foreach ($filters as $filter) {
+                    $columns = array_filter($columns, function($column) use($filter) {
+                        return $column != $filter;
+                    });
+                }
+            } else {
+                echo "Entrei no else";
+                $columns = $filters;
+            }
         }
+
         $alias = $aliasTable ? $aliasTable.'.' : '';
         return $alias . implode(", {$alias}", $columns);
     }
 
-    private function getBinds(): string
+    private function getBinds(bool $modeInclude = null, string ...$filters): string
     {
         $columns = $this->getColumns();
         $columns = array_filter($columns, function($column) {
             return $column != 'id';
         });
+
+        if ($filters) {
+            if ($modeInclude === false) {
+                echo "Entrei no if";
+                foreach ($filters as $filter) {
+                    $columns = array_filter($columns, function($column) use($filter) {
+                        return $column != $filter;
+                    });
+                }
+            } else {
+                echo "Entrei no else";
+                $columns = $filters;
+            }
+        }
         return ':'.implode(", :", $columns);
     }
 
