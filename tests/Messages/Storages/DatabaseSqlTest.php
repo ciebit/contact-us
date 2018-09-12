@@ -42,7 +42,7 @@ class DatabaseSqlTest extends Connection
             Status::ACTIVE()
         );
         $message->setId($id);
-        $message->setAddress($address);
+        // $message->setAddress($address);
         $message->setPhone("88996358654");
         $message->setSubject("Conhecer empresa");
         $message->setDateHour(new DateTime);
