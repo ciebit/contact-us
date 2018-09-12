@@ -60,14 +60,12 @@ class DatabaseSqlTest extends Connection
 
     public function testInsertWithoutAddress(): void
     {
-        $id = 4;
         $message = new Message(
             "Chicó Ferreira",
             "Sabem notícias do João Grilo?",
             "chico@ferreira.com",
             Status::ACTIVE()
         );
-        $message->setId($id);
         $message->setPhone("88996355554");
         $message->setSubject("João Grilo");
         $message->setDateHour(new DateTime);
@@ -76,7 +74,7 @@ class DatabaseSqlTest extends Connection
         $database->insert($message);
 
         $database2 = $this->getDatabase();
-        $database2->addFilterById($id);
+        $database2->addFilterById($message->getId());
         $messageBD = $database2->get();
 
         $this->assertEquals($messageBD->getId(),$message->getId());
