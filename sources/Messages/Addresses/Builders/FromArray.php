@@ -36,9 +36,9 @@ class FromArray implements Builder
             $this->data['address_state_name']
         );
         
-        $this->data['address_complement'] && $address->setComplement($this->data['address_complement']);
-        $this->data['address_cep'] && $address->setCep($this->data['address_cep']);
-        $this->data['address_city_id'] && $address->setCityId((int) $this->data['address_city_id']);
+        isset($this->data['address_complement']) && $address->setComplement($this->data['address_complement']);
+        isset($this->data['address_cep']) && $address->setCep($this->data['address_cep']);
+        isset($this->data['address_city_id']) && $address->setCityId((int) $this->data['address_city_id']);
         
         return $address;
     }
