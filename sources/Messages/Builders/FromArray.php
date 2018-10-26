@@ -38,11 +38,11 @@ class FromArray implements Builder
             $status
         );
         
-        $this->data['id'] && $message->setId((int) $this->data['id']);
-        $this->data['address'] && $message->setAddress($this->data['address']);
-        $this->data['phone'] && $message->setPhone($this->data['phone']);
-        $this->data['subject'] && $message->setSubject($this->data['subject']);
-        $this->data['date_hour'] && $message->setDateHour(new DateTime($this->data['date_hour']));
+        isset($this->data['id']) && $message->setId((int) $this->data['id']);
+        isset($this->data['address']) && $message->setAddress($this->data['address']);
+        isset($this->data['phone']) && $message->setPhone($this->data['phone']);
+        isset($this->data['subject']) && $message->setSubject($this->data['subject']);
+        isset($this->data['date_hour']) && $message->setDateHour(new DateTime($this->data['date_hour']));
         
         return $message;
     }
